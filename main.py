@@ -3,6 +3,10 @@ from selenium import webdriver
 from selenium.webdriver.firefox.webdriver import FirefoxProfile
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.firefox.options import Options
+import telegram
+
+TELEGRAM_KEY = open('key').read()
+TELEGRAM_CHAT_ID = '-385271344'
 
 
 # Python Module libraries
@@ -16,8 +20,14 @@ import argparse
 
 options = Options()
 options.set_headless(headless=True)
+profile = webdriver.FirefoxProfile('/home/sdistefano/.mozilla/firefox/nhowki6v.default')
 
-d = webdriver.Firefox(firefox_options=options)
+profile.set_preference("browser.cache.disk.enable", True)
+profile.set_preference("browser.cache.memory.enable", True)
+profile.set_preference("browser.cache.offline.enable", True)
+profile.set_preference("network.http.use-cache", False)
+
+d = webdriver.Firefox(firefox_profile=profile, options=options)
 # Start the argparse
 #if args.chrome:
 #   d = webdriver.Chrome('drivers/chromedriver')  
@@ -26,7 +36,8 @@ d = webdriver.Firefox(firefox_options=options)
 # Start the browser and get Whatsapp Web
 d.get('https://web.whatsapp.com')
 d.implicitly_wait(10)
-d.get("https://web.whatsapp.com")
+time.sleep(10)
+# d.get("https://web.whatsapp.com")
 
 # Encoding Values
 _B = '\033[1m'
@@ -85,6 +96,10 @@ def send_message_to(chat, msg):
     except:
         print("Failed to send message")
 
+def init_store():
+    script = open("js/init_store.js", "r").read()
+    d.execute_script(script)
+
 def get_unread():
     global last_seen
     script = open("js/get_unread.js", "r").read()
@@ -139,33 +154,41 @@ def write2file():
     except:
         print("Failed to get messages")
 
-query = ""
+d.save_screenshot("screenshot.png")
 
-while query!="quit":
-    if len(currentChat)>0:
-        if currentChatState:
-            query = raw_input(ON.encode('utf=8')+' '+currentChat.encode('utf-8')+" # ")
-        else:
-            query = raw_input(currentChat.encode('utf-8')+" # ")
-    else:
-        query = raw_input("# ")
-    query = query.strip()
-    q = query[0:3].strip()
-    s = query[3:].strip()
-    if q=="sc":
-        chat = s
-        select_chat(chat)
-    elif q=="sm":
-        msg = s
-        send_message(msg)
-    elif q=="um":
-        print_unread()
-    elif q=="gc":
-        write2file()
-        print("All chats are now accessible ...")
-        subprocess.Popen(["scripts/read.sh"])
-    elif query!="quit" and len(query)>0:
-        print("Invalid input")
+
+# query = ""
+#
+# while query!="quit":
+#     if len(currentChat)>0:
+#         if currentChatState:
+#             query = raw_input(ON.encode('utf=8')+' '+currentChat.encode('utf-8')+" # ")
+#         else:
+#             query = raw_input(currentChat.encode('utf-8')+" # ")
+#     else:
+#         query = raw_input("# ")
+#     query = query.strip()
+#     q = query[0:3].strip()
+#     s = query[3:].strip()
+#     if q=="sc":
+#         chat = s
+#         select_chat(chat)
+#     elif q=="sm":
+#         msg = s
+#         send_message(msg)
+#     elif q=="um":
+#         print_unread()
+#     elif q=="gc":
+#         write2file()
+#         print("All chats are now accessible ...")
+#         subprocess.Popen(["scripts/read.sh"])
+#     elif query!="quit" and len(query)>0:
+#         print("Invalid input")
+
+bot = telegram.Bot(TELEGRAM_KEY, use_context=True)
+
+bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=open('screenshot.png', 'rb'))
+
 
 # Close the Web Driver
 d.quit()

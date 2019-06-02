@@ -1,5 +1,6 @@
 var chats = Store.Chat.models;
 
+
 var r = [];
 
 for (i in chats){
